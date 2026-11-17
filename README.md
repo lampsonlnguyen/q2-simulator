@@ -9,6 +9,14 @@ apps. Unicorn executes supported MIPS game instructions and supported installed
 card executables. Kernel boot, hardware drivers, and arbitrary firmware app
 execution remain incomplete. See [runtime compatibility](emulation/docs/game-compatibility.md).
 
+## Download a packaged app
+
+Published GitHub releases automatically build downloadable packages for **Windows x64**, **Linux x64**, **macOS Intel**, and **macOS Apple Silicon**. Download the ZIP or tarball for your platform from [Releases](https://github.com/lampsonlnguyen/q2-emulation/releases), extract it, and launch `Q2-Simulator.exe`, `Q2-Simulator`, or `Q2-Simulator.app` as applicable. Python and pip are not required for these packages.
+
+macOS bundles are currently unsigned; Gatekeeper may require **Control-click → Open**, or approval in **System Settings → Privacy & Security**. Linux requires a compatible desktop system with the usual GUI libraries. Advanced MIPS game compilation still depends on an external LLVM toolchain; music playback uses an external `ffplay` executable; firmware extraction uses `unsquashfs`. These external tools are **not** bundled in this release workflow. The sample UI preview runs without them.
+
+The packaging workflow is in [`.github/workflows/release-apps.yml`](.github/workflows/release-apps.yml). It builds on a **published release** and can be run manually via **Actions → Build Q2 Simulator release apps → Run workflow** for downloadable test artifacts. A manual run does not attach files to a release.
+
 ## Start the simulator
 
 Clone this repository, then run the launcher from its root.
