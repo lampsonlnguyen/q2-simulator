@@ -1,0 +1,63 @@
+name: Unicorn MIPS emulator smoke tests
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+jobs:
+  mips-and-render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install MIPS and Python dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang lld binutils python3-tk
+          python3 -m pip install --break-system-packages -r emulation/requirements-simulator.txt pytest
+      - name: Check Python syntax
+        run: python3 -m py_compile emulation/arcade_emulator.py emulation/simulator.py emulation/simulator_audio.py emulation/arcade_mips.py emulation/game_catalog.py emulation/simulator_firmware.py
+      - name: Validate versioned game manifest discovery
+        run: python3 -m unittest discover -s emulation/tests -p 'test_game_catalog.py' -v
+      - name: Check App Store downloads and rate limiting
+        run: PYTHONPATH=emulation python3 -m pytest --noconftest -q emulation/tests/test_simulator_apps.py emulation/tests/test_simulator_library.py
+      - name: Check FFmpeg host playback integration
+        run: python3 emulation/tests/simulator_audio.py
+      - name: Verify Windows WSL compiler routing
+        run: python3 emulation/tests/arcade_windows_toolchain.py
+      - name: Compile and exercise generic game ABI (no per-game Python adapter)
+        run: |
+          clang --target=mipsel-linux-gnu -march=mips32r2 -mabi=32 -mfp64 -mno-abicalls -fno-pic -G0 -ffreestanding -fno-builtin -Oz -c emulation/abi/example_game.c -o /tmp/q2-generic-game.o
+          ld.lld -m elf32ltsmip -static -Ttext=0x100000 -e q2g_version /tmp/q2-generic-game.o -o /tmp/q2-generic-game.elf
+          python3 emulation/universal_game.py --elf /tmp/q2-generic-game.elf --self-test
+          python3 emulation/universal_game.py --elf /tmp/q2-generic-game.elf --snapshot /tmp/q2-generic-game.png
+          python3 emulation/simulator.py --game-elf /tmp/q2-generic-game.elf --snapshot /tmp/q2-generic-simulator.png
+      - name: Execute actual Q2-target MIPS instructions
+        run: python3 emulation/arcade_mips.py --self-test
+      - name: Test games inside desktop simulator navigation
+        run: python3 emulation/tests/arcade_simulator.py
+      - name: Check out Buddy source for the device test
+        uses: actions/checkout@v4
+        with:
+          repository: DiamondBond/q2-fidget
+          ref: 2ae4da715394aae7ee6312b2130ec16cd07ee079
+          path: .buddy-source
+          persist-credentials: false
+      - name: Run the Buddy MIPS card app inside the desktop simulator
+        run: |
+          bash .buddy-source/build.sh
+          python3 emulation/tests/simulator_buddy.py .buddy-source/dist/.fidget
+      - name: Check packaged Now Playing layout selection
+        run: python3 emulation/tests/simulator_now_playing.py
+      - name: Render interactive emulator game screens headlessly
+        run: |
+          python3 emulation/arcade_emulator.py --snapshot /tmp/q2-pong.png --game pong
+          python3 emulation/arcade_emulator.py --snapshot /tmp/q2-blocks.png --game blocks
+          python3 emulation/simulator.py --snapshot /tmp/q2-lyrics.png --screen lyrics --with-device
+          python3 -c 'from PIL import Image; import sys; assert all(Image.open(p).size == (435, 664) for p in sys.argv[1:])' /tmp/q2-pong.png /tmp/q2-blocks.png /tmp/q2-lyrics.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: q2-unicorn-screenshots
+          path: |
+            /tmp/q2-pong.png
+            /tmp/q2-blocks.png
+            /tmp/q2-lyrics.png
