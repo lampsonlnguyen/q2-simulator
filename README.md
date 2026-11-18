@@ -4,14 +4,21 @@ Desktop simulator and experimental MIPS app emulation for the Shanling Q2 and Q2
 This repository contains the emulation work extracted from Q2 Pod's
 `desktop-simulator` branch. It runs independently from a Q2 Pod checkout.
 
-The desktop UI previews firmware assets, music, lyrics, settings, and SD-card
-apps. Unicorn executes supported MIPS game instructions and supported installed
-card executables. Kernel boot, hardware drivers, and arbitrary firmware app
-execution remain incomplete. See [runtime compatibility](emulation/docs/game-compatibility.md).
+Firmware packages now default to an **experimental actual-firmware runtime**.
+QEMU executes the package's MIPS UI executable and libraries; the desktop displays
+its framebuffer. It does not recreate firmware menus in Python. This is initial
+user-mode execution, **not a complete hardware emulator**. Interactive startup
+and the Custom App Store tab are not yet validated. See the
+[firmware runtime and current blockers](emulation/docs/firmware-runtime.md).
+
+The older Python UI model remains available explicitly with `--preview`. It
+approximates firmware behavior and cannot test compiled firmware UI changes.
 
 ## Download a packaged app
 
-Published GitHub releases automatically build downloadable packages for **Windows x64**, **Linux x64**, **macOS Intel**, and **macOS Apple Silicon**. Download the ZIP or tarball for your platform from [Releases](https://github.com/lampsonlnguyen/q2-emulation/releases), extract it, and launch `Q2-Simulator.exe`, `Q2-Simulator`, or `Q2-Simulator.app` as applicable. Python and pip are not required for these packages.
+Preview releases automatically build downloadable packages for **Windows x64**, **Linux x64**, **macOS Intel**, and **macOS Apple Silicon**. Download the ZIP or tarball for your platform from [Releases](https://github.com/lampsonlnguyen/q2-emulation/releases), extract it, and launch `Q2-Simulator.exe`, `Q2-Simulator`, or `Q2-Simulator.app` as applicable. Python and pip are not required for preview packages. They do not bundle the
+experimental firmware runtime dependencies. Use `--preview` when launching
+a package built from this branch.
 
 macOS bundles are currently unsigned; Gatekeeper may require **Control-click → Open**, or approval in **System Settings → Privacy & Security**. Linux requires a compatible desktop system with the usual GUI libraries. Advanced MIPS game compilation still depends on an external LLVM toolchain; music playback uses an external `ffplay` executable; firmware extraction uses `unsquashfs`. These external tools are **not** bundled in this release workflow. The sample UI preview runs without them.
 
@@ -24,13 +31,14 @@ Clone this repository, then run the launcher from its root.
 ```sh
 git clone https://github.com/lampsonlnguyen/q2-emulation.git
 cd q2-emulation
-bash run-simulator.sh
+bash run-simulator.sh --preview
 ```
 
-On Windows, double-click `run-simulator.bat`, or run it in PowerShell.
+For the legacy preview on Windows, run this in PowerShell. Actual firmware
+execution currently requires Linux or Ubuntu WSL.
 
 ```powershell
-.\run-simulator.bat
+.\run-simulator.bat --preview
 ```
 
 The launcher creates `emulation/.venv-simulator` and installs the Python
@@ -38,7 +46,7 @@ dependencies. Use Python 3.10 or newer with Tkinter. Ubuntu and WSL users can
 install the system dependencies with the following command.
 
 ```sh
-sudo apt install python3 python3-venv python3-tk clang lld binutils squashfs-tools ffmpeg
+sudo apt install python3 python3-venv python3-tk clang lld binutils squashfs-tools ffmpeg qemu-user proot
 ```
 
 `clang` with MIPS support and `ld.lld` compile the built-in game previews.
@@ -53,12 +61,15 @@ a Python installation with Tkinter. See the [platform setup guide](emulation/doc
 bash run-simulator.sh --firmware "/path/to/update.tar" --sd-card "/path/to/SD-card"
 ```
 
-Official Shanling firmware ZIPs are also supported. Use **Open firmware** and
-**Mount SD folder** in the window to select them interactively. Launching with
-no arguments opens the sample checkout preview. Mounted SD folders persist app
-downloads and save files across sessions.
+Official Shanling firmware ZIPs are also supported. The actual firmware runtime
+uses Linux/WSL, QEMU, PRoot, and a compiler for its Linux device bridge. It reports
+startup failures; it never silently falls back to the Python UI. See the
+[runtime guide](emulation/docs/firmware-runtime.md) for preparation, diagnostics,
+and validation limits.
 
-The same arguments work with `run-simulator.bat` on Windows.
+For the old asset/UI approximation, explicitly use `--preview --firmware PATH`.
+An invocation with no mode asks you to choose firmware execution or preview.
+Mounted SD folders persist downloads and save files across sessions.
 
 ## Games and validation
 

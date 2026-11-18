@@ -1,4 +1,8 @@
-# Desktop simulator — quick start
+# Legacy desktop preview — quick start
+
+For execution of the actual firmware UI, see [firmware runtime](firmware-runtime.md).
+This page describes only the explicit `--preview` mode. `--firmware` without
+`--preview` now runs the experimental firmware backend, with no Python UI fallback.
 
 The desktop simulator previews the Q2/Q2 Pod UI on a computer. **This is a Python UI simulator, not a MIPS emulator and not the actual firmware running on a PC.** Some device-only features and settings are not implemented.
 
@@ -7,7 +11,7 @@ The desktop simulator previews the Q2/Q2 Pod UI on a computer. **This is a Pytho
 From the repository root:
 
 ```sh
-bash emulation/run-simulator.sh
+bash emulation/run-simulator.sh --preview
 ```
 
 The launcher is invoked through Bash, so no executable permission change is required.
@@ -22,25 +26,25 @@ On macOS, use a Python distribution with Tkinter included. If the launcher canno
 
 ## Windows 11 (double-click or Command Prompt)
 
-Install Python 3.10+ from [python.org](https://www.python.org/downloads/) with **Tcl/Tk** enabled. Double-click `emulation/run-simulator.bat` in the emulation folder. It creates its own virtual environment, installs dependencies, and opens the simulator. Alternatively, in Command Prompt or PowerShell opened at the repository root:
+Install Python 3.10+ from [python.org](https://www.python.org/downloads/) with **Tcl/Tk** enabled. Run `emulation/run-simulator.bat --preview` from a terminal. It creates its own virtual environment, installs dependencies, and opens the simulator. Alternatively, in Command Prompt or PowerShell opened at the repository root:
 
 ```cmd
-.\emulation\run-simulator.bat
+.\emulation\run-simulator.bat --preview
 ```
 
-You can pass CLI options as arguments, for example `emulation/run-simulator.bat --sd-card "C:\\Music"`. If Windows opens the Microsoft Store instead of Python, install Python from python.org and ensure the Python launcher or Python executable is available on PATH.
+You can pass CLI options as arguments, for example `emulation/run-simulator.bat --preview --sd-card "C:\\Music"`. If Windows opens the Microsoft Store instead of Python, install Python from python.org and ensure the Python launcher or Python executable is available on PATH.
 
 For WSL, use the Linux launcher and make sure GUI applications are supported (for example WSLg).
 
 ## Try it with real content
 
-No firmware or audio files are needed for the default demo: `bash emulation/run-simulator.sh` opens a checkout preview with sample tracks.
+No firmware or audio files are needed for the default demo: `bash emulation/run-simulator.sh --preview` opens a checkout preview with sample tracks.
 
-- **Mount music as an SD card:** `bash emulation/run-simulator.sh --sd-card "/path/to/music"` or choose **Mount SD folder** in the window. The simulator currently scans MP3 and FLAC files.
-- **Preview a firmware package:** `bash emulation/run-simulator.sh --firmware "/path/to/update.tar"` or `bash emulation/run-simulator.sh --firmware "/path/to/stock-firmware.zip"`. You can also click **Open firmware**.
-- **Both together:** `bash emulation/run-simulator.sh --firmware "/path/to/update.tar" --sd-card "/path/to/music"`.
-- **Save a screenshot without a GUI:** `bash emulation/run-simulator.sh --snapshot /tmp/q2.png --screen home --with-device`.
-- **All options:** `bash emulation/run-simulator.sh --help`.
+- **Mount music as an SD card:** `bash emulation/run-simulator.sh --preview --sd-card "/path/to/music"` or choose **Mount SD folder** in the window. The simulator currently scans MP3 and FLAC files.
+- **Preview a firmware package:** `bash emulation/run-simulator.sh --preview --firmware "/path/to/update.tar"` or `bash emulation/run-simulator.sh --preview --firmware "/path/to/stock-firmware.zip"`. You can also click **Open firmware**.
+- **Both together:** `bash emulation/run-simulator.sh --preview --firmware "/path/to/update.tar" --sd-card "/path/to/music"`.
+- **Save a screenshot without a GUI:** `bash emulation/run-simulator.sh --preview --snapshot /tmp/q2.png --screen home --with-device`.
+- **All options:** `bash emulation/run-simulator.sh --preview --help`.
 
 To load a firmware package, install **squashfs-tools** so `unsquashfs` is on PATH (Ubuntu/Debian: `sudo apt install squashfs-tools`; macOS: `brew install squashfs`). A package must contain the expected Q2 update files. The checkout preview does not require `unsquashfs`.
 

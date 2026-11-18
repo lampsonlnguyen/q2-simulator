@@ -20,6 +20,8 @@ jobs:
         run: python3 -m unittest discover -s emulation/tests -p 'test_game_catalog.py' -v
       - name: Check App Store downloads and rate limiting
         run: PYTHONPATH=emulation python3 -m pytest --noconftest -q emulation/tests/test_simulator_apps.py emulation/tests/test_simulator_library.py
+      - name: Check firmware framebuffer and Linux device boundary
+        run: python3 -m unittest discover -s emulation/tests -p 'test_firmware_runtime.py' -v
       - name: Check FFmpeg host playback integration
         run: python3 emulation/tests/simulator_audio.py
       - name: Verify Windows WSL compiler routing
@@ -52,7 +54,7 @@ jobs:
         run: |
           python3 emulation/arcade_emulator.py --snapshot /tmp/q2-pong.png --game pong
           python3 emulation/arcade_emulator.py --snapshot /tmp/q2-blocks.png --game blocks
-          python3 emulation/simulator.py --snapshot /tmp/q2-lyrics.png --screen lyrics --with-device
+          python3 emulation/simulator.py --preview --snapshot /tmp/q2-lyrics.png --screen lyrics --with-device
           python3 -c 'from PIL import Image; import sys; assert all(Image.open(p).size == (435, 664) for p in sys.argv[1:])' /tmp/q2-pong.png /tmp/q2-blocks.png /tmp/q2-lyrics.png
       - uses: actions/upload-artifact@v4
         with:

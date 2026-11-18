@@ -1660,6 +1660,8 @@ def main():
     parser.add_argument('--stock-font', type=Path, help='extracted Shanling default.ttf')
     parser.add_argument('--fonts-dir', type=Path, help='directory holding packaged bold.ttf and classic-light.ttf')
     parser.add_argument('--firmware', type=Path, help='official Q2 firmware ZIP or an update.tar')
+    parser.add_argument('--preview', action='store_true',
+                        help='explicitly use the Python UI model (does not test firmware code)')
     parser.add_argument('--game-elf', type=Path, help='run an ABI v1 MIPS game in the generic game runner (not a firmware image)')
     parser.add_argument('--unsquashfs', default='unsquashfs', help='squashfs-tools executable (defaults to PATH)')
     parser.add_argument('--sd-card', type=Path, help='directory to mount as the simulated SD card')
@@ -1672,6 +1674,22 @@ def main():
     parser.add_argument('--shell', choices=tuple(SHELL_FINISHES), default=DEFAULT_SHELL,
                         help='shell color for the window or a screenshot with --with-device')
     args = parser.parse_args()
+    if not args.firmware and not args.preview and not args.game_elf:
+        parser.error('choose --firmware PATH for real firmware execution, or --preview for the Python UI model')
+    if args.firmware and not args.preview:
+        if (args.tracks or args.game_elf or args.stock_font or args.fonts_dir or
+                args.screen != 'playing' or args.with_device or args.no_audio or args.ffplay or
+                args.unsquashfs != 'unsquashfs' or
+                any(x == '--theme' or x.startswith('--theme=') for x in sys.argv)):
+            parser.error('firmware execution uses guest UI/settings; use --preview for the Python UI model')
+        from firmware_runtime import main as run_firmware
+        command = ['--firmware', str(args.firmware)]
+        if args.sd_card:
+            command += ['--sd-card', str(args.sd_card)]
+        if args.snapshot:
+            command += ['--snapshot', str(args.snapshot)]
+        run_firmware(command)
+        return
     if args.game_elf:
         if args.firmware or args.sd_card or args.tracks:
             parser.error('--game-elf is a standalone ABI game; do not combine with firmware or music')
