@@ -1,4 +1,4 @@
-# Q2 Emulation
+# Q2 Simulator - Initial attempt to emulation
 
 Desktop simulator and experimental MIPS app emulation for the Shanling Q2 and Q2 Pod.
 This repository contains the emulation work extracted from Q2 Pod's
